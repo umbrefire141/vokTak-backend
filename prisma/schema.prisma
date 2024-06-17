@@ -1,0 +1,128 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "public")]
+}
+
+model User {
+  uuid          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  avatar        String?
+  email         String
+  name          String    @unique
+  role_id       Int
+  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
+  password      String
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(3)
+  comments      Comment[]
+  friends       Friend[]  @relation("friends")
+  likes         Like[]
+  photos        Photo[]
+  posts         Post[]
+  shares        Share[]
+  role          Role      @relation(fields: [role_id], references: [id], onDelete: NoAction)
+  messages      Message[]
+  user_sessions Session[] @relation("user_session")
+  chats         Chat[]    @relation("chat")
+}
+
+model Friend {
+  id        Int    @id @default(autoincrement())
+  user_uuid String @db.Uuid
+  user      User   @relation("friends", fields: [user_uuid], references: [uuid], onDelete: Cascade)
+}
+
+model Chat {
+  id       Int       @id @default(autoincrement())
+  messages Message[]
+  users    User[]    @relation("chat")
+}
+
+model Message {
+  id        Int     @id @default(autoincrement())
+  message   String
+  chat_id   Int
+  user_uuid String  @db.Uuid
+  photos    Photo[]
+  chat      Chat    @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [user_uuid], references: [uuid], onDelete: SetNull)
+}
+
+model Session {
+  uuid      String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sid       String   @unique
+  user_uuid String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  user      User     @relation("user_session", fields: [user_uuid], references: [uuid], onDelete: Cascade)
+}
+
+model Role {
+  id    Int        @id @default(autoincrement())
+  name  Role_Names
+  users User[]
+}
+
+model Post {
+  uuid      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  content   String
+  user_uuid String    @db.Uuid
+  comments  Comment[]
+  likes     Like[]
+  photos    Photo[]
+  author    User      @relation(fields: [user_uuid], references: [uuid], onDelete: Cascade)
+  shares    Share[]
+}
+
+model Share {
+  id        Int     @id @default(autoincrement())
+  comment   String?
+  user_uuid String? @db.Uuid
+  post_uuid String? @db.Uuid
+  photos    Photo[]
+  post      Post?   @relation(fields: [post_uuid], references: [uuid])
+  user      User?   @relation(fields: [user_uuid], references: [uuid])
+}
+
+model Comment {
+  id        Int     @id @default(autoincrement())
+  message   String
+  user_uuid String  @db.Uuid
+  post_uuid String  @db.Uuid
+  post      Post    @relation(fields: [post_uuid], references: [uuid], onDelete: Cascade)
+  author    User    @relation(fields: [user_uuid], references: [uuid], onDelete: SetNull)
+  photos    Photo[]
+}
+
+model Photo {
+  id              Int      @id @default(autoincrement())
+  name            String
+  alt             String?
+  image           String
+  user_uuid       String?  @db.Uuid
+  chat_message_id Int?
+  postUuid        String?  @db.Uuid
+  comment_id      Int?
+  shareId         Int?
+  chat_message    Message? @relation(fields: [chat_message_id], references: [id])
+  comment         Comment? @relation(fields: [comment_id], references: [id])
+  post            Post?    @relation(fields: [postUuid], references: [uuid])
+  Share           Share?   @relation(fields: [shareId], references: [id])
+  user            User?    @relation(fields: [user_uuid], references: [uuid])
+}
+
+model Like {
+  id        Int    @id @default(autoincrement())
+  user_uuid String @db.Uuid
+  post_uuid String @db.Uuid
+  post      Post   @relation(fields: [post_uuid], references: [uuid], onDelete: Cascade)
+  user      User   @relation(fields: [user_uuid], references: [uuid], onDelete: SetNull)
+}
+
+enum Role_Names {
+  Admin
+  User
+}
