@@ -1,6 +1,7 @@
 import { PrismaService } from '@app/common';
 import { Pagination } from '@app/common/shared/decorators/pagination.decorator';
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InputPhotoDto } from '../photos/dto/input-photo.dto';
 import { InputPostDto } from './dto/post.dto';
 
 @Injectable()
@@ -14,7 +15,13 @@ export class PostsService {
       include: {
         comments: true,
         likes: true,
-        author: true,
+        author: {
+          include: { avatar: true },
+        },
+        photos: true,
+      },
+      orderBy: {
+        created_at: 'desc',
       },
     });
 
@@ -33,7 +40,10 @@ export class PostsService {
         include: {
           comments: true,
           likes: true,
-          author: true,
+          author: {
+            include: { avatar: true },
+          },
+          photos: true,
         },
       });
     } catch (error) {
@@ -56,12 +66,31 @@ export class PostsService {
     return await this.prisma.post.delete({ where: { uuid: post_uuid } });
   }
 
-  async updateImage(uuid: string, avatar: Express.Multer.File) {
+  async uploadImage(
+    uuid: string,
+    user_uuid: string,
+    avatar: Express.Multer.File,
+    dto: InputPhotoDto,
+  ) {
     const path = avatar.path.replace(/\\/g, '/');
 
     return await this.prisma.post.update({
       where: { uuid },
-      data: { image: path },
+      data: { photos: { create: { user_uuid, image: path, ...dto } } },
+    });
+  }
+
+  async hidePost(uuid: string) {
+    return await this.prisma.post.update({
+      where: { uuid },
+      data: { hidden: true },
+    });
+  }
+
+  async unhidePost(uuid: string) {
+    return await this.prisma.post.update({
+      where: { uuid },
+      data: { hidden: false },
     });
   }
 }

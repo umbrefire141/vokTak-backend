@@ -1,8 +1,9 @@
 import { ApiProperty, PickType } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 import { CommentDto } from '../../comments/comment.dto';
+import { PhotoDto } from '../../photos/dto/photo.dto';
 import { UserDto } from '../../users/dto/user.dto';
 import { LikeDto } from './like.dto';
 
@@ -12,14 +13,14 @@ export class PostDto {
 
   @Expose()
   @ApiProperty()
-  @IsOptional()
-  @IsString()
-  image?: string;
-
-  @Expose()
-  @ApiProperty()
   @IsString()
   content: string;
+
+  @Expose()
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsBoolean()
+  hidden: boolean;
 
   @Expose()
   @Type(() => UserDto)
@@ -32,6 +33,16 @@ export class PostDto {
   @Expose()
   @Type(() => LikeDto)
   likes: LikeDto[];
+
+  @Expose()
+  @Type(() => PhotoDto)
+  photos: PhotoDto[];
+
+  @Expose()
+  created_at: Date;
+
+  @Expose()
+  updated_at: Date;
 }
 
-export class InputPostDto extends PickType(PostDto, ['image', 'content']) {}
+export class InputPostDto extends PickType(PostDto, ['content', 'hidden']) {}

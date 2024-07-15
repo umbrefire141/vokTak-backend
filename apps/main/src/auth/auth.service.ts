@@ -7,7 +7,7 @@ import { v4 } from 'uuid';
 export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async register(user_uuid: string) {
+  async registration(user_uuid: string) {
     const date = new Date();
     date.setTime(date.getTime() + 7 * 24 * 60 * 60 * 1e3);
 
@@ -40,11 +40,11 @@ export class AuthService {
   }
 
   async getMe(sid: string) {
-    const session = await this.prisma.session.findFirst({
-      where: { sid },
-      include: { user: { include: { role: true } } },
+    const user = await this.prisma.user.findFirst({
+      where: { user_sessions: { every: { sid } } },
+      include: { chats: true, avatar: true, notifications: true },
     });
 
-    return { user: session.user };
+    return { user: user };
   }
 }

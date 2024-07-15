@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { genSalt, hash } from 'bcrypt';
+import { InputPhotoDto } from '../photos/dto/input-photo.dto';
 import { InputUserDto, UpdateUserDto } from './dto/input-user.dto';
 
 @Injectable()
@@ -12,7 +13,7 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async getAllUsers() {
-    return await this.prisma.user.findMany();
+    return await this.prisma.user.findMany({});
   }
 
   async getUser(uuid: string) {
@@ -23,11 +24,25 @@ export class UsersService {
           uuid: true,
           avatar: true,
           email: true,
-          name: true,
-          posts: true,
-          createdAt: true,
+          nickname: true,
+          firstname: true,
+          lastname: true,
+          posts: {
+            include: {
+              comments: true,
+              photos: true,
+              likes: true,
+              author: {
+                include: {
+                  avatar: true,
+                },
+              },
+            },
+          },
+          created_at: true,
           password: false,
           friends: { include: { user: true } },
+          photos: true,
         },
       });
     } catch (error) {
@@ -35,10 +50,11 @@ export class UsersService {
     }
   }
 
-  async getUserByName(name: string) {
+  async getUserByEmail(email: string) {
     try {
       return await this.prisma.user.findFirstOrThrow({
-        where: { name },
+        where: { email },
+        include: { avatar: true },
       });
     } catch (error) {
       throw new NotFoundException("User isn't found");
@@ -47,7 +63,7 @@ export class UsersService {
 
   async create(dto: InputUserDto) {
     const existedUser = await this.prisma.user.findFirst({
-      where: { name: dto.name },
+      where: { email: dto.email },
     });
 
     if (existedUser) throw new BadRequestException('User already exists');
@@ -58,29 +74,42 @@ export class UsersService {
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
-        name: dto.name,
+        nickname: dto.nickname,
+        firstname: dto.firstname,
+        lastname: dto.lastname,
         password: hashedPassword,
         role_id: 1,
       },
+      include: { avatar: true },
     });
 
     return user;
   }
 
   async update(uuid: string, dto: UpdateUserDto) {
-    return await this.prisma.user.update({ where: { uuid }, data: { ...dto } });
+    return await this.prisma.user.update({
+      where: { uuid },
+      data: { ...dto },
+      include: { avatar: true },
+    });
   }
 
   async delete(uuid: string) {
     return await this.prisma.user.delete({ where: { uuid } });
   }
 
-  async updateAvatar(uuid: string, avatar: Express.Multer.File) {
+  async updateAvatar(
+    uuid: string,
+    avatar: Express.Multer.File,
+    dto: InputPhotoDto,
+  ) {
     const path = avatar.path.replace(/\\/g, '/');
 
     return await this.prisma.user.update({
       where: { uuid },
-      data: { avatar: path },
+      data: {
+        avatar: { create: { photo: { create: { ...dto, image: path } } } },
+      },
     });
   }
 

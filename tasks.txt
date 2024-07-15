@@ -1,0 +1,4 @@
+rename from received to receiver in model notification field "received"
+add trim for email, nickname, firstname and lastname in user model
+add only pass string without numbers in user model frields firstname and lastname
+add model groups with subscribers

@@ -5,13 +5,6 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
-  "workspaces": {
-    "packages": [
-      "./apps/*",
-      "./libs/*",
-      "./tools/eslint"
-    ]
-  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
@@ -51,6 +44,7 @@
     "cache-manager-redis-store": "^3.0.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "graphql": "^16.8.2",
     "react-hook-form": "^7.51.5",
@@ -66,6 +60,7 @@
     "@nestjs/testing": "^10.0.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cache-manager-redis-store": "^2.0.4",
+    "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.7",
     "@types/express": "^4.17.17",
     "@types/jest": "^29.5.2",

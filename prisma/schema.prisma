@@ -10,34 +10,40 @@ datasource db {
 }
 
 model User {
-  uuid          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  avatar        String?
-  email         String
-  name          String    @unique
+  uuid          String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  avatar_id     Int?           @unique
+  avatar        Avatar?        @relation(fields: [avatar_id], references: [id])
+  email         String         @unique
+  nickname      String         @unique
+  firstname     String
+  lastname      String
   role_id       Int
-  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
+  created_at    DateTime       @default(now()) @db.Timestamptz(3)
   password      String
-  updatedAt     DateTime  @updatedAt @db.Timestamptz(3)
+  updatedAt     DateTime       @updatedAt @db.Timestamptz(3)
   comments      Comment[]
-  friends       Friend[]  @relation("friends")
+  friends       Friend[]       @relation("friends")
   likes         Like[]
-  photos        Photo[]
+  photos        Photo[]        @relation("photos")
   posts         Post[]
   shares        Share[]
-  role          Role      @relation(fields: [role_id], references: [id], onDelete: NoAction)
+  role          Role           @relation(fields: [role_id], references: [id], onDelete: NoAction)
   messages      Message[]
-  user_sessions Session[] @relation("user_session")
-  chats         Chat[]    @relation("chat")
+  user_sessions Session[]      @relation("user_session")
+  chats         Chat[]         @relation("chat")
+  notifications Notification[]
 }
 
 model Friend {
-  id        Int    @id @default(autoincrement())
-  user_uuid String @db.Uuid
-  user      User   @relation("friends", fields: [user_uuid], references: [uuid], onDelete: Cascade)
+  id        Int     @id @default(autoincrement())
+  user_uuid String  @db.Uuid
+  user      User    @relation("friends", fields: [user_uuid], references: [uuid], onDelete: Cascade)
+  confirmed Boolean @default(false)
 }
 
 model Chat {
   id       Int       @id @default(autoincrement())
+  name     String?
   messages Message[]
   users    User[]    @relation("chat")
 }
@@ -53,11 +59,11 @@ model Message {
 }
 
 model Session {
-  uuid      String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  sid       String   @unique
-  user_uuid String   @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-  user      User     @relation("user_session", fields: [user_uuid], references: [uuid], onDelete: Cascade)
+  uuid       String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sid        String   @unique
+  user_uuid  String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(3)
+  user       User     @relation("user_session", fields: [user_uuid], references: [uuid], onDelete: Cascade)
 }
 
 model Role {
@@ -67,14 +73,17 @@ model Role {
 }
 
 model Post {
-  uuid      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  content   String
-  user_uuid String    @db.Uuid
-  comments  Comment[]
-  likes     Like[]
-  photos    Photo[]
-  author    User      @relation(fields: [user_uuid], references: [uuid], onDelete: Cascade)
-  shares    Share[]
+  uuid       String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  content    String
+  user_uuid  String    @db.Uuid
+  hidden     Boolean   @default(false)
+  comments   Comment[]
+  likes      Like[]
+  photos     Photo[]
+  author     User      @relation(fields: [user_uuid], references: [uuid], onDelete: Cascade)
+  shares     Share[]
+  created_at DateTime  @default(now()) @db.Timestamptz(3)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(3)
 }
 
 model Share {
@@ -88,13 +97,15 @@ model Share {
 }
 
 model Comment {
-  id        Int     @id @default(autoincrement())
-  message   String
-  user_uuid String  @db.Uuid
-  post_uuid String  @db.Uuid
-  post      Post    @relation(fields: [post_uuid], references: [uuid], onDelete: Cascade)
-  author    User    @relation(fields: [user_uuid], references: [uuid], onDelete: SetNull)
-  photos    Photo[]
+  id         Int      @id @default(autoincrement())
+  message    String
+  user_uuid  String   @db.Uuid
+  post_uuid  String   @db.Uuid
+  post       Post     @relation(fields: [post_uuid], references: [uuid], onDelete: Cascade)
+  author     User     @relation(fields: [user_uuid], references: [uuid], onDelete: SetNull)
+  photos     Photo[]
+  created_at DateTime @default(now()) @db.Timestamptz(3)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 }
 
 model Photo {
@@ -104,14 +115,25 @@ model Photo {
   image           String
   user_uuid       String?  @db.Uuid
   chat_message_id Int?
-  postUuid        String?  @db.Uuid
+  post_uuid       String?  @db.Uuid
   comment_id      Int?
-  shareId         Int?
+  share_id        Int?
+  hidden          Boolean  @default(false)
   chat_message    Message? @relation(fields: [chat_message_id], references: [id])
   comment         Comment? @relation(fields: [comment_id], references: [id])
-  post            Post?    @relation(fields: [postUuid], references: [uuid])
-  Share           Share?   @relation(fields: [shareId], references: [id])
-  user            User?    @relation(fields: [user_uuid], references: [uuid])
+  post            Post?    @relation(fields: [post_uuid], references: [uuid])
+  user            User?    @relation("photos", fields: [user_uuid], references: [uuid])
+  share           Share?   @relation(fields: [share_id], references: [id])
+  avatar          Avatar?  @relation(fields: [avatar_id], references: [id])
+  avatar_id       Int?     @unique
+  created_at      DateTime @default(now()) @db.Timestamptz(3)
+  updated_at      DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+}
+
+model Avatar {
+  id    Int    @id @default(autoincrement())
+  user  User?
+  photo Photo?
 }
 
 model Like {
@@ -120,6 +142,14 @@ model Like {
   post_uuid String @db.Uuid
   post      Post   @relation(fields: [post_uuid], references: [uuid], onDelete: Cascade)
   user      User   @relation(fields: [user_uuid], references: [uuid], onDelete: SetNull)
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  received   User     @relation(fields: [user_uuid], references: [uuid])
+  user_uuid  String   @db.Uuid
+  message    String
+  created_at DateTime @default(now()) @db.Timestamptz(3)
 }
 
 enum Role_Names {
