@@ -1,6 +1,10 @@
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class ChatDto {
   @IsString()
-  receiver_uuid: string;
+  @IsOptional()
+  name?: string;
+
+  @IsString()
+  receiver_uuids: string[];
 }

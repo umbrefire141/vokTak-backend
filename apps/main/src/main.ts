@@ -3,6 +3,7 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as compression from 'compression';
 import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
@@ -12,6 +13,7 @@ async function bootstrap() {
   const PORT = config.get('PORT') || 5000;
 
   app.get(PrismaService);
+  app.use(compression());
 
   app.enableCors({
     origin: ['http://localhost:3000', 'http://localhost:5173'],

@@ -17,12 +17,23 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "typeRoots": ["./src/types/", "./node_modules/@types"],
+    "typeRoots": [
+      "./src/types/",
+      "./node_modules/@types"
+    ],
     "paths": {
-      "@app/common": ["libs/common/src"],
-      "@app/common/*": ["libs/common/src/*"],
-      "@app/shared/*": ["libs/common/src/shared/*"],
-      "@app/*": ["./apps/*"]
+      "@app/common": [
+        "libs/common/src"
+      ],
+      "@app/common/*": [
+        "libs/common/src/*"
+      ],
+      "@app/shared/*": [
+        "libs/common/src/shared/*"
+      ],
+      "@app/*": [
+        "./apps/*"
+      ]
     }
   }
 }

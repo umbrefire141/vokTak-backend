@@ -5,13 +5,20 @@ import { UserDto } from './user.dto';
 
 export class InputUserDto extends PickType(UserDto, [
   'email',
-  'name',
+  'nickname',
+  'firstname',
+  'lastname',
 ] as const) {
   @Expose()
   @IsString()
   @IsNotEmpty()
-  @ApiProperty()
+  @ApiProperty({ example: 'examplePassword123' })
   password: string;
 }
 
-export class UpdateUserDto extends PickType(UserDto, ['name', 'email']) {}
+export class UpdateUserDto extends PickType(UserDto, [
+  'nickname',
+  'firstname',
+  'lastname',
+  'email',
+]) {}

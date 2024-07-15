@@ -11,6 +11,8 @@ import { CommentsModule } from './comments/comments.module';
 import { PostsModule } from './posts/posts.module';
 import { RolesModule } from './roles/roles.module';
 import { UsersModule } from './users/users.module';
+import { PhotosModule } from './photos/photos.module';
+import { VideosModule } from './videos/videos.module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     PostsModule,
     CommentsModule,
+    PhotosModule,
+    VideosModule,
   ],
   controllers: [],
   providers: [],

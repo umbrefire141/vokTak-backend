@@ -12,6 +12,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Inject,
   Param,
   Patch,
@@ -21,12 +22,23 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import {
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { Cache } from 'cache-manager';
 import { plainToInstance } from 'class-transformer';
+import { InputPhotoDto } from '../photos/dto/input-photo.dto';
 import { PostPaginationDto } from './dto/post-pagination.dto';
 import { InputPostDto, PostDto } from './dto/post.dto';
+import { postSchemaApi } from './post.schema';
 import { PostsService } from './posts.service';
 
+@ApiTags('posts')
 @Controller('posts')
 export class PostsController {
   constructor(
@@ -34,6 +46,18 @@ export class PostsController {
     @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
   ) {}
 
+  @ApiOkResponse({
+    description: 'Get all posts',
+    isArray: true,
+    schema: { example: [postSchemaApi] },
+  })
+  @ApiParam({
+    name: 'pagination',
+    schema: {
+      example: { page: 0, limit: 50, offset: 0, size: 50 } as Pagination,
+    },
+  })
+  @HttpCode(200)
   @Get()
   async getAll(@PaginationParams() pagination: Pagination) {
     const { posts, page, size, total } =
@@ -44,6 +68,11 @@ export class PostsController {
     return plainToInstance(PostPaginationDto, { page, size, total, posts });
   }
 
+  @ApiOkResponse({
+    description: 'get user',
+    schema: { example: postSchemaApi },
+  })
+  @HttpCode(200)
   @Get(':uuid')
   async getOne(@Param('uuid') uuid: string) {
     const post = await this.postsService.getOne(uuid);
@@ -53,9 +82,15 @@ export class PostsController {
     return plainToInstance(PostDto, post);
   }
 
-  @Post()
+  @ApiCreatedResponse({
+    description: 'Post was created',
+    schema: { example: postSchemaApi },
+  })
+  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
   @UseGuards(AuthGuard)
   @UseInterceptors(InjectUserInterceptor)
+  @HttpCode(201)
+  @Post()
   async create(
     @CurrentUser('uuid') user_uuid: string,
     @Body() dto: InputPostDto,
@@ -65,9 +100,15 @@ export class PostsController {
     return plainToInstance(PostDto, post);
   }
 
-  @Put(':uuid')
+  @ApiOkResponse({
+    description: 'post was updated',
+    schema: { example: postSchemaApi },
+  })
+  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
   @UseGuards(AuthGuard)
   @UseInterceptors(InjectUserInterceptor)
+  @HttpCode(200)
+  @Put(':uuid')
   async update(
     @CurrentUser('uuid') user_uuid: string,
     @Param('uuid') post_uuid: string,
@@ -81,9 +122,12 @@ export class PostsController {
     return plainToInstance(PostDto, post);
   }
 
-  @Delete(':uuid')
+  @ApiResponse({ status: 204, description: 'user was deleted' })
+  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
   @UseGuards(AuthGuard)
   @UseInterceptors(InjectUserInterceptor)
+  @HttpCode(204)
+  @Delete(':uuid')
   async delete(@Param('uuid') post_uuid: string) {
     const post = await this.postsService.delete(post_uuid);
 
@@ -93,7 +137,11 @@ export class PostsController {
     return plainToInstance(PostDto, post);
   }
 
-  @Patch('update-avatar/:uuid')
+  @ApiOkResponse({
+    description: 'Image was uploaded for post',
+    schema: { example: postSchemaApi },
+  })
+  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
   @UseGuards(AuthGuard)
   @UseInterceptors(
     UploadFileInterceptor('image', {
@@ -101,15 +149,43 @@ export class PostsController {
     }),
     InjectUserInterceptor,
   )
-  async updateAvatar(
+  @HttpCode(200)
+  @Patch('upload-image/:uuid')
+  async uploadImage(
     @Param('uuid') uuid: string,
+    @CurrentUser('uuid') user_uuid: string,
     @UploadedFile() img: Express.Multer.File,
+    @Body() dto: InputPhotoDto,
   ) {
-    const post = await this.postsService.updateImage(uuid, img);
+    const post = await this.postsService.uploadImage(uuid, user_uuid, img, dto);
 
     this.cacheService.del('posts');
     this.cacheService.del(`post/${uuid}`);
 
     return plainToInstance(PostDto, post);
+  }
+
+  @ApiOkResponse({
+    description: 'The post was hide',
+    schema: { example: { ...postSchemaApi, hidden: true } },
+  })
+  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
+  @UseGuards(AuthGuard)
+  @HttpCode(200)
+  @Patch('hide/:uuid')
+  async hidePost(@Param('uuid') uuid: string) {
+    return await this.postsService.hidePost(uuid);
+  }
+
+  @ApiOkResponse({
+    description: 'The post was unhid',
+    schema: { example: postSchemaApi },
+  })
+  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
+  @UseGuards(AuthGuard)
+  @HttpCode(200)
+  @Patch('unhide/:uuid')
+  async unhidePost(@Param('uuid') uuid: string) {
+    return await this.postsService.unhidePost(uuid);
   }
 }

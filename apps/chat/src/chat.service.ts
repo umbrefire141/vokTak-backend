@@ -19,7 +19,13 @@ export class ChatService {
   async create(user_uuid: string, dto: ChatDto) {
     return await this.prisma.chat.create({
       data: {
-        users: { connect: [{ uuid: user_uuid }, { uuid: dto.receiver_uuid }] },
+        name: dto.name,
+        users: {
+          connect: [
+            { uuid: user_uuid },
+            ...dto.receiver_uuids.map((uuid) => ({ uuid })),
+          ],
+        },
       },
     });
   }

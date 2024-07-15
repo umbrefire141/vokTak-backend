@@ -3,6 +3,10 @@ import { InputUserDto } from '../users/dto/input-user.dto';
 
 export class AuthDto extends PickType(InputUserDto, [
   'email',
-  'name',
+  'nickname',
+  'firstname',
+  'lastname',
   'password',
 ] as const) {}
+
+export class LoginDto extends PickType(InputUserDto, ['email', 'password']) {}
