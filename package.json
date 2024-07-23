@@ -51,6 +51,7 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "slugify": "^1.6.6",
+    "socket.io": "^4.7.5",
     "uuid": "^9.0.1",
     "yup": "^1.4.0"
   },
@@ -98,8 +99,7 @@
       "**/*.(t|j)s"
     ],
     "moduleNameMapper": {
-      "^src/(.*)$": "<rootDir>/$1",
-      "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1"
+      "^src/(.*)$": "<rootDir>/$1"
     },
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
