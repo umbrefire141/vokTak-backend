@@ -22,3 +22,15 @@ export class UpdateUserDto extends PickType(UserDto, [
   'lastname',
   'email',
 ]) {}
+
+export class ChangePasswordUserDto {
+  @Expose()
+  @IsString()
+  @ApiProperty({ example: 'oldPassword123' })
+  password: string;
+
+  @Expose()
+  @IsString()
+  @ApiProperty({ example: 'newPassword123' })
+  newPassword: string;
+}

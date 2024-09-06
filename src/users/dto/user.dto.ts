@@ -1,18 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsString, Length } from 'class-validator';
 import { CommentDto } from '../../comments/comment.dto';
 import { PhotoDto } from '../../photos/dto/photo.dto';
 import { LikeDto } from '../../posts/dto/like.dto';
 import { PostDto } from '../../posts/dto/post.dto';
-
-export class AvatarDto {
-  @Expose()
-  id: number;
-  @Expose()
-  @Type(() => PhotoDto)
-  avatar: PhotoDto;
-}
+import { AvatarDto } from './avatar.dto';
+import { UserInfoDto } from './user-info.dto';
 
 export class UserDto {
   @Expose()
@@ -31,18 +25,25 @@ export class UserDto {
 
   @Expose()
   @IsString()
+  @Length(2, 50)
   @ApiProperty({ example: 'example123' })
   nickname: string;
 
   @Expose()
   @IsString()
+  @Length(2, 50)
   @ApiProperty({ example: 'Nick' })
   firstname: string;
 
   @Expose()
   @IsString()
+  @Length(2, 50)
   @ApiProperty({ example: 'Smith' })
   lastname: string;
+
+  @Expose()
+  @Type(() => UserInfoDto)
+  info?: UserInfoDto;
 
   @Expose()
   @Type(() => PostDto)

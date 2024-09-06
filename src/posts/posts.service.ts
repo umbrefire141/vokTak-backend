@@ -1,4 +1,5 @@
 import { PrismaService } from '@/prisma.service';
+import { postSelectedData } from '@/shared/selectedData/post';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Pagination } from 'src/shared/decorators/pagination.decorator';
 import { InputPhotoDto } from '../photos/dto/input-photo.dto';
@@ -12,14 +13,7 @@ export class PostsService {
     const posts = await this.prisma.post.findMany({
       take: limit,
       skip: offset,
-      include: {
-        comments: true,
-        likes: true,
-        author: {
-          include: { avatar: true },
-        },
-        photos: true,
-      },
+      select: postSelectedData,
       orderBy: {
         created_at: 'desc',
       },
@@ -37,14 +31,7 @@ export class PostsService {
     try {
       return await this.prisma.post.findFirstOrThrow({
         where: { uuid },
-        include: {
-          comments: true,
-          likes: true,
-          author: {
-            include: { avatar: true },
-          },
-          photos: true,
-        },
+        select: postSelectedData,
       });
     } catch (error) {
       throw new NotFoundException("Post isn't found");

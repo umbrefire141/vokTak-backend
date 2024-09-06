@@ -1,4 +1,5 @@
 import { PrismaService } from '@/prisma.service';
+import { userSelectedData } from '@/shared/selectedData/user';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { compare } from 'bcrypt';
 import { v4 } from 'uuid';
@@ -42,7 +43,7 @@ export class AuthService {
   async getMe(sid: string) {
     const user = await this.prisma.user.findFirst({
       where: { user_sessions: { some: { sid } } },
-      include: { chats: true, avatar: true, notifications: true },
+      select: { ...userSelectedData, chats: true },
     });
 
     return { user: user };
