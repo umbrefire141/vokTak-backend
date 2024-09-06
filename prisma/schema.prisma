@@ -32,6 +32,21 @@ model User {
   user_sessions Session[]      @relation("user_session")
   chats         Chat[]         @relation("chat")
   notifications Notification[]
+  user_info     User_Info?
+}
+
+model User_Info {
+  id             Int      @id @default(autoincrement())
+  user           User     @relation(fields: [user_uuid], references: [uuid])
+  user_uuid      String   @unique @db.Uuid
+  languages      String[]
+  currentCity    String?
+  hometown       String?
+  description    String?
+  favoriteMovies String[]
+  favoriteGames  String[]
+  occupation     String?
+  hobbies        String[]
 }
 
 model Friend {
@@ -146,7 +161,7 @@ model Like {
 
 model Notification {
   id         Int      @id @default(autoincrement())
-  received   User     @relation(fields: [user_uuid], references: [uuid])
+  receiver   User     @relation(fields: [user_uuid], references: [uuid])
   user_uuid  String   @db.Uuid
   message    String
   created_at DateTime @default(now()) @db.Timestamptz(3)

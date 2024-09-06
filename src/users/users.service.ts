@@ -1,12 +1,18 @@
 import { PrismaService } from '@/prisma.service';
+import { userSelectedData } from '@/shared/selectedData/user';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { genSalt, hash } from 'bcrypt';
-import { InputPhotoDto } from '../photos/dto/input-photo.dto';
-import { InputUserDto, UpdateUserDto } from './dto/input-user.dto';
+import { compare, genSalt, hash } from 'bcrypt';
+import {
+  ChangePasswordUserDto,
+  InputUserDto,
+  UpdateUserDto,
+} from './dto/input-user.dto';
+import { UserInfoDto } from './dto/user-info.dto';
 
 @Injectable()
 export class UsersService {
@@ -14,44 +20,16 @@ export class UsersService {
 
   async getAllUsers() {
     return await this.prisma.user.findMany({
-      include: {
-        avatar: {
-          include: {
-            photo: true,
-          },
-        },
-      },
+      select: userSelectedData,
     });
   }
 
   async getUser(uuid: string) {
     try {
+      this.prisma.user.findFirst({});
       return await this.prisma.user.findFirstOrThrow({
         where: { uuid },
-        select: {
-          uuid: true,
-          avatar: true,
-          email: true,
-          nickname: true,
-          firstname: true,
-          lastname: true,
-          posts: {
-            include: {
-              comments: true,
-              photos: true,
-              likes: true,
-              author: {
-                include: {
-                  avatar: true,
-                },
-              },
-            },
-          },
-          created_at: true,
-          password: false,
-          friends: { include: { user: true } },
-          photos: true,
-        },
+        select: userSelectedData,
       });
     } catch (error) {
       throw new NotFoundException("User isn't found");
@@ -88,7 +66,7 @@ export class UsersService {
         password: hashedPassword,
         role_id: 1,
       },
-      include: { avatar: true },
+      select: userSelectedData,
     });
 
     return user;
@@ -98,31 +76,71 @@ export class UsersService {
     return await this.prisma.user.update({
       where: { uuid },
       data: { ...dto },
-      include: { avatar: true },
+      select: userSelectedData,
     });
   }
 
-  async delete(uuid: string) {
-    return await this.prisma.user.delete({ where: { uuid } });
+  async updateInfo(uuid: string, dto: Omit<UserInfoDto, 'id'>) {
+    const currentUser = await this.prisma.user.findFirst({
+      where: { uuid },
+      include: {
+        user_info: true,
+      },
+    });
+
+    if (!currentUser.user_info) {
+      await this.prisma.user_Info.create({ data: { user_uuid: uuid, ...dto } });
+      return currentUser;
+    }
+
+    await this.prisma.user_Info.update({
+      where: { user_uuid: uuid },
+      data: { ...dto },
+    });
+    return currentUser;
   }
 
-  async updateAvatar(
-    uuid: string,
-    avatar: Express.Multer.File,
-    dto: InputPhotoDto,
-  ) {
+  async changePassword(uuid: string, dto: ChangePasswordUserDto) {
+    const currentUser = await this.prisma.user.findFirst({ where: { uuid } });
+
+    const verifiedPassword = await compare(currentUser.password, dto.password);
+
+    if (verifiedPassword) throw new UnauthorizedException('Wrong password');
+
+    return await this.prisma.user.update({
+      where: { uuid },
+      data: { password: dto.newPassword },
+    });
+  }
+
+  async updateAvatar(uuid: string, avatar: Express.Multer.File) {
     const path = avatar.path.replace(/\\/g, '/');
 
     return await this.prisma.user.update({
       where: { uuid },
       data: {
-        avatar: { create: { photo: { create: { ...dto, image: path } } } },
+        avatar: {
+          create: { photo: { create: { name: avatar.filename, image: path } } },
+        },
       },
     });
   }
 
-  async addFriend(user_uuid: string) {
+  async addFriend(uuid: string, user_uuid: string) {
+    const currentUser = await this.prisma.user.findFirst({
+      where: { uuid },
+    });
+
+    if (currentUser.uuid === user_uuid)
+      throw new BadRequestException(
+        "You can't add yourself in list of friends",
+      );
+
     await this.prisma.friend.create({ data: { user_uuid } });
     return 'The user was added to your list of friends';
+  }
+
+  async delete(uuid: string) {
+    return await this.prisma.user.delete({ where: { uuid } });
   }
 }
