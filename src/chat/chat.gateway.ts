@@ -1,6 +1,4 @@
 import { PrismaService } from '@/prisma.service';
-import { WsAuthGuard } from '@/shared/Guards/wsAuth.guard';
-import { UseGuards } from '@nestjs/common';
 import {
   MessageBody,
   SubscribeMessage,
@@ -10,8 +8,7 @@ import {
 import { Server } from 'http';
 import { InputMessageDto } from './dtos/input-message.dto';
 
-@WebSocketGateway(8080, {
-  namespace: 'chat',
+@WebSocketGateway(4050, {
   cors: {
     origin: 'http://localhost:5173',
     credentials: true,
@@ -24,7 +21,6 @@ export class ChatGateway {
   @WebSocketServer()
   server: Server;
 
-  @UseGuards(WsAuthGuard)
   @SubscribeMessage('get_messages')
   async getMessages(@MessageBody() data: any) {
     const messages = await this.prisma.message.findMany({
@@ -41,7 +37,6 @@ export class ChatGateway {
     return messages;
   }
 
-  @UseGuards(WsAuthGuard)
   @SubscribeMessage('create_message')
   async sendMessage(@MessageBody() data: InputMessageDto) {
     const createdMessage = await this.prisma.message.create({
