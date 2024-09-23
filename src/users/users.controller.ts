@@ -49,10 +49,13 @@ export class UsersController {
       example: [userSchemaApi],
     },
   })
+  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
+  @UseGuards(AuthGuard)
+  @UseInterceptors(InjectUserInterceptor)
   @HttpCode(200)
   @Get()
-  async getAll() {
-    const users = await this.usersService.getAllUsers();
+  async getAll(@CurrentUser('uuid') uuid: string) {
+    const users = await this.usersService.getAllUsers(uuid);
     this.cacheService.set('users', users);
     return plainToInstance(UserDto, users);
   }

@@ -18,8 +18,13 @@ import { UserInfoDto } from './dto/user-info.dto';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async getAllUsers() {
+  async getAllUsers(uuid: string) {
     return await this.prisma.user.findMany({
+      where: {
+        NOT: {
+          uuid,
+        },
+      },
       select: userSelectedData,
     });
   }
