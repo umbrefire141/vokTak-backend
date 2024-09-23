@@ -25,19 +25,19 @@ export class UserDto {
 
   @Expose()
   @IsString()
-  @Length(2, 50)
+  @Length(2, 25)
   @ApiProperty({ example: 'example123' })
   nickname: string;
 
   @Expose()
   @IsString()
-  @Length(2, 50)
+  @Length(2, 10)
   @ApiProperty({ example: 'Nick' })
   firstname: string;
 
   @Expose()
   @IsString()
-  @Length(2, 50)
+  @Length(2, 10)
   @ApiProperty({ example: 'Smith' })
   lastname: string;
 

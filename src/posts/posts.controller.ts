@@ -125,7 +125,6 @@ export class PostsController {
   @ApiResponse({ status: 204, description: 'user was deleted' })
   @ApiUnauthorizedResponse({ description: "User isn't authorized" })
   @UseGuards(AuthGuard)
-  @UseInterceptors(InjectUserInterceptor)
   @HttpCode(204)
   @Delete(':uuid')
   async delete(@Param('uuid') post_uuid: string) {
@@ -187,5 +186,34 @@ export class PostsController {
   @Patch('unhide/:uuid')
   async unhidePost(@Param('uuid') uuid: string) {
     return await this.postsService.unhidePost(uuid);
+  }
+
+  @ApiOkResponse({
+    description: 'The post was liked',
+    schema: { example: postSchemaApi },
+  })
+  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
+  @UseInterceptors(InjectUserInterceptor)
+  @UseGuards(AuthGuard)
+  @HttpCode(200)
+  @Patch('like/:uuid')
+  async likePost(
+    @Param('uuid') uuid: string,
+    @CurrentUser('uuid') user_uuid: string,
+  ) {
+    return await this.postsService.likePost(uuid, user_uuid);
+  }
+
+  @ApiOkResponse({
+    description: 'The post was unliked',
+    schema: { example: postSchemaApi },
+  })
+  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
+  @UseGuards(AuthGuard)
+  @UseInterceptors(InjectUserInterceptor)
+  @HttpCode(200)
+  @Patch('unlike')
+  async unlikePost(@CurrentUser('uuid') uuid: string) {
+    return await this.postsService.unlikePost(uuid);
   }
 }

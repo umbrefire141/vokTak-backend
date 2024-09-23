@@ -33,6 +33,15 @@ model User {
   chats         Chat[]         @relation("chat")
   notifications Notification[]
   user_info     User_Info?
+  online        User_Online?   @relation("online")
+}
+
+model User_Online {
+  id         Int      @id @default(autoincrement())
+  online     Boolean
+  lastOnline DateTime @default(now()) @db.Timestamptz(3)
+  user       User     @relation("online", fields: [user_uuid], references: [uuid])
+  user_uuid  String   @unique @db.Uuid
 }
 
 model User_Info {
