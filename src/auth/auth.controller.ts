@@ -120,6 +120,7 @@ export class AuthController {
   @Get('me')
   async getMe(@Cookies() sid: string) {
     const { user } = await this.authService.getMe(sid);
+
     return plainToInstance(UserDto, user);
   }
 }

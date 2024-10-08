@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsDateString, IsOptional, IsString } from 'class-validator';
 
 export class UserInfoDto {
   @Expose()
@@ -34,19 +34,25 @@ export class UserInfoDto {
   @IsArray()
   @IsOptional()
   @ApiProperty({ required: false })
-  favoriteMovies?: string[];
+  favorite_movies?: string[];
 
   @Expose()
   @IsArray()
   @IsOptional()
   @ApiProperty({ required: false })
-  favoriteGames?: string[];
+  favorite_games?: string[];
 
   @Expose()
   @IsString()
   @IsOptional()
   @ApiProperty({ required: false })
   occupation?: string;
+
+  @Expose()
+  @IsDateString()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  birth?: Date;
 
   @Expose()
   @IsArray()
