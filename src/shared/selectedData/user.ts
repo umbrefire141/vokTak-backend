@@ -12,6 +12,7 @@ export const userSelectedData: Prisma.UserSelect<DefaultArgs> = {
   nickname: true,
   firstname: true,
   lastname: true,
+  language: true,
   user_info: true,
   posts: {
     include: {
@@ -31,6 +32,5 @@ export const userSelectedData: Prisma.UserSelect<DefaultArgs> = {
   },
   created_at: true,
   password: false,
-  friends: { include: { user: true } },
   photos: true,
 };

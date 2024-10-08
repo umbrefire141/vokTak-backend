@@ -1,3 +1,4 @@
+import { Cookies } from '@/auth/cookie.decorator';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   Body,
@@ -9,6 +10,7 @@ import {
   Param,
   Patch,
   Put,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -24,13 +26,18 @@ import {
 } from '@nestjs/swagger';
 import { Cache } from 'cache-manager';
 import { plainToInstance } from 'class-transformer';
+import { Response } from 'express';
 import { CurrentUser } from 'src/shared/decorators/user.decorator';
 import { AuthGuard } from 'src/shared/Guards/auth.guard';
 import { InjectUserInterceptor } from 'src/shared/interceptors/InjectUser.interceptor';
 import { UploadFileInterceptor } from 'src/shared/interceptors/upload-file.interceptor';
-import { ChangePasswordUserDto, UpdateUserDto } from './dto/input-user.dto';
+import {
+  ChangeLanuageDto,
+  ChangePasswordUserDto,
+  UpdateUserDto,
+} from './dto/input-user.dto';
 import { UserInfoDto } from './dto/user-info.dto';
-import { UserDto } from './dto/user.dto';
+import { FriendDto, UserDto } from './dto/user.dto';
 import { userSchemaApi } from './user.schema';
 import { UsersService } from './users.service';
 
@@ -41,6 +48,8 @@ export class UsersController {
     private readonly usersService: UsersService,
     @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
   ) {}
+
+  // Get methods
 
   @ApiOkResponse({
     description: 'Users was gotten',
@@ -68,12 +77,31 @@ export class UsersController {
   })
   @ApiNotFoundResponse({ description: "User wasn't found" })
   @HttpCode(200)
-  @Get(':uuid')
+  @Get('one/:uuid')
   async getUser(@Param('uuid') uuid: string) {
     const user = await this.usersService.getUser(uuid);
     this.cacheService.set(`user/${user.uuid}`, user);
     return plainToInstance(UserDto, user);
   }
+
+  @ApiOkResponse({
+    description: 'Friend of list was gotten',
+    schema: {
+      example: userSchemaApi,
+    },
+  })
+  @ApiNotFoundResponse({ description: "User wasn't found" })
+  @HttpCode(200)
+  @UseGuards(AuthGuard)
+  @UseInterceptors(InjectUserInterceptor)
+  @Get('/get-friends')
+  async getFriendsList(@CurrentUser('uuid') uuid: string) {
+    const friends = await this.usersService.getListFriends(uuid);
+
+    return plainToInstance(FriendDto, friends);
+  }
+
+  // Put methods
 
   @ApiOkResponse({
     description: 'user was updated',
@@ -85,8 +113,11 @@ export class UsersController {
   @UseGuards(AuthGuard)
   @UseInterceptors(InjectUserInterceptor)
   @HttpCode(200)
-  @Put(':uuid')
-  async updateUser(@Param('uuid') uuid: string, dto: UpdateUserDto) {
+  @Put('')
+  async updateUser(
+    @CurrentUser('uuid') uuid: string,
+    @Body() dto: UpdateUserDto,
+  ) {
     const user = await this.usersService.update(uuid, dto);
 
     this.cacheService.del('users');
@@ -94,6 +125,8 @@ export class UsersController {
 
     return plainToInstance(UserDto, user);
   }
+
+  // Patch methods
 
   @ApiOkResponse({
     description: 'Info of user was updated',
@@ -105,8 +138,11 @@ export class UsersController {
   @UseGuards(AuthGuard)
   @UseInterceptors(InjectUserInterceptor)
   @HttpCode(200)
-  @Patch('user-info/:uuid')
-  async updateUserInfo(@Param('uuid') uuid: string, @Body() dto: UserInfoDto) {
+  @Patch('user-info')
+  async updateUserInfo(
+    @CurrentUser('uuid') uuid: string,
+    @Body() dto: UserInfoDto,
+  ) {
     const user = await this.usersService.updateInfo(uuid, dto);
 
     this.cacheService.del('users');
@@ -125,12 +161,35 @@ export class UsersController {
   @UseGuards(AuthGuard)
   @UseInterceptors(InjectUserInterceptor)
   @HttpCode(200)
-  @Patch('change-password/:uuid')
+  @Patch('change-password')
   async changePassword(
-    @Param('uuid') uuid: string,
+    @CurrentUser('uuid') uuid: string,
     @Body() dto: ChangePasswordUserDto,
   ) {
     const user = await this.usersService.changePassword(uuid, dto);
+
+    this.cacheService.del('users');
+    this.cacheService.del(`user/${uuid}`);
+
+    return plainToInstance(UserDto, user);
+  }
+
+  @ApiOkResponse({
+    description: 'Language of user was changed',
+    schema: {
+      example: userSchemaApi,
+    },
+  })
+  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
+  @UseGuards(AuthGuard)
+  @UseInterceptors(InjectUserInterceptor)
+  @HttpCode(200)
+  @Patch('change-language')
+  async changeLanguage(
+    @CurrentUser('uuid') uuid: string,
+    @Body() dto: ChangeLanuageDto,
+  ) {
+    const user = await this.usersService.changeLanguage(uuid, dto);
 
     this.cacheService.del('users');
     this.cacheService.del(`user/${uuid}`);
@@ -178,6 +237,31 @@ export class UsersController {
   }
 
   @ApiOkResponse({
+    description: 'Confirm',
+    schema: {
+      example: userSchemaApi,
+    },
+  })
+  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        user_uuid: {
+          type: 'string',
+          example: 'any user_uuid',
+        },
+      },
+    },
+  })
+  @UseGuards(AuthGuard)
+  @UseInterceptors(InjectUserInterceptor)
+  @Patch('confirm-friend/:id')
+  async confirmFriend(@Param('id') id: number) {
+    return this.usersService.confirmFriend(id);
+  }
+
+  @ApiOkResponse({
     description: 'Friend was added',
     schema: {
       example: userSchemaApi,
@@ -205,16 +289,24 @@ export class UsersController {
     return this.usersService.addFriend(uuid, user_uuid);
   }
 
+  // Delete methods
+
   @ApiResponse({
     status: 204,
     description: 'user was deleted',
   })
   @ApiUnauthorizedResponse({ description: "User isn't authorized" })
+  @UseInterceptors(InjectUserInterceptor)
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  @Delete(':uuid')
-  async delete(@Param('uuid') uuid: string) {
-    await this.usersService.delete(uuid);
+  @Delete()
+  async delete(
+    @CurrentUser('uuid') uuid: string,
+    @Cookies() sid: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    res.cookie('sid', null, { path: '/api/', maxAge: -1 });
+    await this.usersService.delete(uuid, sid);
     this.cacheService.del('users');
     this.cacheService.del(`user/${uuid}`);
 

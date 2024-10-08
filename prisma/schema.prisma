@@ -20,9 +20,11 @@ model User {
   role_id       Int
   created_at    DateTime       @default(now()) @db.Timestamptz(3)
   password      String
+  language      LANGUAGES      @default(value: rus)
   updatedAt     DateTime       @updatedAt @db.Timestamptz(3)
   comments      Comment[]
   friends       Friend[]       @relation("friends")
+  friendsOf     Friend[]       @relation("friendsOf")
   likes         Like[]
   photos        Photo[]        @relation("photos")
   posts         Post[]
@@ -45,24 +47,27 @@ model User_Online {
 }
 
 model User_Info {
-  id             Int      @id @default(autoincrement())
-  user           User     @relation(fields: [user_uuid], references: [uuid])
-  user_uuid      String   @unique @db.Uuid
-  languages      String[]
-  currentCity    String?
-  hometown       String?
-  description    String?
-  favoriteMovies String[]
-  favoriteGames  String[]
-  occupation     String?
-  hobbies        String[]
+  id              Int       @id @default(autoincrement())
+  user            User      @relation(fields: [user_uuid], references: [uuid])
+  user_uuid       String    @unique @db.Uuid
+  languages       String[]
+  currentCity     String?
+  hometown        String?
+  description     String?
+  favorite_movies String[]
+  favorite_games  String[]
+  occupation      String?
+  hobbies         String[]
+  birth           DateTime?
 }
 
 model Friend {
-  id        Int     @id @default(autoincrement())
-  user_uuid String  @db.Uuid
-  user      User    @relation("friends", fields: [user_uuid], references: [uuid], onDelete: Cascade)
-  confirmed Boolean @default(false)
+  id          Int     @id @default(autoincrement())
+  user_uuid   String  @db.Uuid
+  user        User    @relation("friends", fields: [user_uuid], references: [uuid], onDelete: Cascade)
+  confirmed   Boolean @default(false)
+  userOf      User    @relation("friendsOf", fields: [userOf_uuid], references: [uuid])
+  userOf_uuid String  @db.Uuid
 }
 
 model Chat {
@@ -179,4 +184,9 @@ model Notification {
 enum Role_Names {
   Admin
   User
+}
+
+enum LANGUAGES {
+  rus
+  eng
 }

@@ -10,6 +10,7 @@ export const userSchemaApi: UserDto = {
   nickname: 'example123',
   firstname: 'Nick',
   lastname: 'Smith',
+  language: 'rus',
   posts: [postSchemaApi],
   photos: [photoSchemaApi],
   comments: [commentSchemaApi],

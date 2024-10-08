@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { LANGUAGES } from '@prisma/client';
 import { Expose, Type } from 'class-transformer';
-import { IsEmail, IsString, Length } from 'class-validator';
+import { IsEmail, IsEnum, IsString, Length } from 'class-validator';
 import { CommentDto } from '../../comments/comment.dto';
 import { PhotoDto } from '../../photos/dto/photo.dto';
 import { LikeDto } from '../../posts/dto/like.dto';
@@ -42,8 +43,12 @@ export class UserDto {
   lastname: string;
 
   @Expose()
+  @IsEnum(LANGUAGES)
+  language: LANGUAGES;
+
+  @Expose()
   @Type(() => UserInfoDto)
-  info?: UserInfoDto;
+  user_info?: UserInfoDto;
 
   @Expose()
   @Type(() => PostDto)
@@ -71,6 +76,13 @@ export class FriendDto {
   id: number;
 
   @Expose()
+  confirmed: boolean;
+
+  @Expose()
   @Type(() => UserDto)
   user: UserDto;
+
+  @Expose()
+  @Type(() => UserDto)
+  userOf: UserDto;
 }
