@@ -1,6 +1,6 @@
 import { ApiProperty, PickType } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 import { CommentDto } from '../../comments/comment.dto';
 import { PhotoDto } from '../../photos/dto/photo.dto';
@@ -45,4 +45,9 @@ export class PostDto {
   updated_at: Date;
 }
 
-export class InputPostDto extends PickType(PostDto, ['content', 'hidden']) {}
+export class InputPostDto extends PickType(PostDto, ['content', 'hidden']) {
+  @Expose()
+  @IsNumber({}, { each: true })
+  @IsOptional()
+  photoIds?: number[];
+}

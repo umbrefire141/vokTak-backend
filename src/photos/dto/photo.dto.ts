@@ -21,5 +21,6 @@ export class PhotoDto {
   @Expose()
   @ApiProperty({ required: false })
   @IsBoolean()
+  @IsOptional()
   hidden?: boolean;
 }
