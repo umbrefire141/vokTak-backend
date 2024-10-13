@@ -1,3 +1,4 @@
+import { PhotoDto } from '@/photos/dto/photo.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   Body,
@@ -32,7 +33,6 @@ import { CurrentUser } from 'src/shared/decorators/user.decorator';
 import { AuthGuard } from 'src/shared/Guards/auth.guard';
 import { InjectUserInterceptor } from 'src/shared/interceptors/InjectUser.interceptor';
 import { UploadFileInterceptor } from 'src/shared/interceptors/upload-file.interceptor';
-import { InputPhotoDto } from '../photos/dto/input-photo.dto';
 import { PostPaginationDto } from './dto/post-pagination.dto';
 import { InputPostDto, PostDto } from './dto/post.dto';
 import { postSchemaApi } from './post.schema';
@@ -101,6 +101,29 @@ export class PostsController {
   }
 
   @ApiOkResponse({
+    description: 'Image was uploaded for post',
+    schema: { example: postSchemaApi },
+  })
+  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
+  @UseGuards(AuthGuard)
+  @UseInterceptors(
+    UploadFileInterceptor('image', {
+      dest: 'uploads/posts/images/[YYYY]/[MM]',
+    }),
+    InjectUserInterceptor,
+  )
+  @HttpCode(200)
+  @Post('upload-image')
+  async uploadImage(
+    @CurrentUser('uuid') user_uuid: string,
+    @UploadedFile() img: Express.Multer.File,
+  ) {
+    const post = await this.postsService.uploadImage(user_uuid, img);
+
+    return plainToInstance(PhotoDto, post);
+  }
+
+  @ApiOkResponse({
     description: 'post was updated',
     schema: { example: postSchemaApi },
   })
@@ -132,34 +155,6 @@ export class PostsController {
 
     this.cacheService.del('posts');
     this.cacheService.del(`post/${post_uuid}`);
-
-    return plainToInstance(PostDto, post);
-  }
-
-  @ApiOkResponse({
-    description: 'Image was uploaded for post',
-    schema: { example: postSchemaApi },
-  })
-  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
-  @UseGuards(AuthGuard)
-  @UseInterceptors(
-    UploadFileInterceptor('image', {
-      dest: 'uploads/posts/images/[YYYY]/[MM]',
-    }),
-    InjectUserInterceptor,
-  )
-  @HttpCode(200)
-  @Patch('upload-image/:uuid')
-  async uploadImage(
-    @Param('uuid') uuid: string,
-    @CurrentUser('uuid') user_uuid: string,
-    @UploadedFile() img: Express.Multer.File,
-    @Body() dto: InputPhotoDto,
-  ) {
-    const post = await this.postsService.uploadImage(uuid, user_uuid, img, dto);
-
-    this.cacheService.del('posts');
-    this.cacheService.del(`post/${uuid}`);
 
     return plainToInstance(PostDto, post);
   }

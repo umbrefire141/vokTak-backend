@@ -1,5 +1,6 @@
 import { PrismaService } from '@/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { unlink } from 'fs/promises';
 import { InputPhotoDto } from './dto/input-photo.dto';
 
 @Injectable()
@@ -27,6 +28,10 @@ export class PhotosService {
   }
 
   async deletePhoto(id: number) {
+    const photo = await this.prisma.photo.findFirst({ where: { id } });
+
+    await unlink(photo.image);
+
     return await this.prisma.photo.delete({ where: { id } });
   }
 
