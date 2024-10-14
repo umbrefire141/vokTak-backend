@@ -99,13 +99,13 @@ export class PostsService {
     });
   }
 
-  async unlikePost(uuid: string) {
+  async unlikePost(uuid: string, u_uuid: string) {
     const post = await this.prisma.post.findFirst({
       where: { uuid },
       select: { likes: true },
     });
 
-    const likeId = post.likes.find(({ user_uuid }) => user_uuid === uuid).id;
+    const likeId = post.likes.find(({ user_uuid }) => user_uuid === u_uuid).id;
 
     return await this.prisma.like.delete({ where: { id: likeId } });
   }

@@ -207,8 +207,11 @@ export class PostsController {
   @UseGuards(AuthGuard)
   @UseInterceptors(InjectUserInterceptor)
   @HttpCode(200)
-  @Patch('unlike')
-  async unlikePost(@CurrentUser('uuid') uuid: string) {
-    return await this.postsService.unlikePost(uuid);
+  @Patch('unlike/:uuid')
+  async unlikePost(
+    @Param('uuid') uuid: string,
+    @CurrentUser('uuid') user_uuid: string,
+  ) {
+    return await this.postsService.unlikePost(uuid, user_uuid);
   }
 }
