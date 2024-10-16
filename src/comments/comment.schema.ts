@@ -7,4 +7,7 @@ export const commentSchemaApi: CommentDto = {
   message: 'hello world',
   author: userSchemaApi,
   post: postSchemaApi,
+  photos: [],
+  created_at: new Date(Date.now()),
+  updated_at: new Date(Date.now()),
 };

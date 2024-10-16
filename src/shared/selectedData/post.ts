@@ -25,6 +25,7 @@ export const postSelectedData: Prisma.PostSelect<DefaultArgs> = {
           },
         },
       },
+      photos: true,
     },
   },
   author: {

@@ -1,3 +1,4 @@
+import { PhotoDto } from '@/photos/dto/photo.dto';
 import { ApiProperty, PickType } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { IsString } from 'class-validator';
@@ -20,8 +21,20 @@ export class CommentDto {
   @Expose()
   @Type(() => PostDto)
   post: PostDto;
+
+  @Expose()
+  @Type(() => PhotoDto)
+  photos: PhotoDto[];
+
+  @Expose()
+  created_at: Date;
+
+  @Expose()
+  updated_at: Date;
 }
 
 export class InputCommentDto extends PickType(CommentDto, ['message']) {
+  @Expose()
+  @IsString()
   post_uuid: string;
 }
