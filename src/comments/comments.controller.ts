@@ -48,7 +48,7 @@ export class CommentsController {
   @ApiUnauthorizedResponse({ description: "User isn't authorized" })
   @UseGuards(AuthGuard)
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: number, dto: InputCommentDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: InputCommentDto) {
     return this.commentsService.update(id, dto);
   }
 
