@@ -16,7 +16,7 @@ async function bootstrap() {
   app.use(compression());
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: [config.get('SITE_URL')],
     credentials: true,
   });
 
