@@ -1,4 +1,5 @@
 import { PrismaService } from '@/prisma.service';
+import { ConfigService } from '@nestjs/config';
 import {
   MessageBody,
   SubscribeMessage,
@@ -10,7 +11,7 @@ import { InputMessageDto } from './dtos/input-message.dto';
 
 @WebSocketGateway(4050, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: new ConfigService().get('SITE_URL'),
     credentials: true,
     allowedHeaders: true,
     methods: ['POST', 'GET'],
