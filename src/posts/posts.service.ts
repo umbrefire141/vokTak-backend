@@ -58,7 +58,7 @@ export class PostsService {
   async update(user_uuid: string, post_uuid: string, dto: InputPostDto) {
     return await this.prisma.post.update({
       where: { uuid: post_uuid },
-      data: { user_uuid, ...dto },
+      data: { user_uuid, content: dto.content, hidden: dto.hidden },
     });
   }
 
