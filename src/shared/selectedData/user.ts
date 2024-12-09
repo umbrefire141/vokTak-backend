@@ -16,9 +16,27 @@ export const userSelectedData: Prisma.UserSelect<DefaultArgs> = {
   user_info: true,
   posts: {
     include: {
-      comments: true,
+      comments: {
+        include: {
+          author: {
+            select: {
+              avatar: {
+                select: {
+                  photo: true,
+                },
+              },
+              email: true,
+              firstname: true,
+              lastname: true,
+              nickname: true,
+            },
+          },
+        },
+      },
       photos: true,
-      likes: true,
+      likes: {
+        include: { user: true },
+      },
       author: {
         include: {
           avatar: {
