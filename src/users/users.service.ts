@@ -37,14 +37,12 @@ export class UsersService {
         select: {
           ...userSelectedData,
           friends: {
-            where: { confirmed: true },
             include: {
               user: { include: { avatar: true } },
               userOf: { include: { avatar: true } },
             },
           },
           friendsOf: {
-            where: { confirmed: true },
             include: {
               user: { include: { avatar: true } },
               userOf: { include: { avatar: true } },
@@ -53,7 +51,10 @@ export class UsersService {
         },
       });
 
-      return { ...user, friends: [...user.friends, ...user.friendsOf] };
+      return {
+        ...user,
+        friends: [...user.friends, ...user.friendsOf],
+      };
     } catch (error) {
       throw new NotFoundException("User isn't found");
     }
@@ -68,32 +69,6 @@ export class UsersService {
     } catch (error) {
       throw new NotFoundException("User isn't found");
     }
-  }
-
-  async getListFriends(uuid: string) {
-    const { friends, friendsOf } = await this.prisma.user.findFirst({
-      where: { uuid },
-      include: {
-        friends: {
-          where: { OR: [{ user_uuid: uuid }, { userOf_uuid: uuid }] },
-          include: {
-            user: { include: { avatar: true } },
-            userOf: { include: { avatar: true } },
-          },
-        },
-        friendsOf: {
-          where: { OR: [{ user_uuid: uuid }, { userOf_uuid: uuid }] },
-          include: {
-            user: { include: { avatar: true } },
-            userOf: { include: { avatar: true } },
-          },
-        },
-      },
-    });
-
-    return [...friends, ...friendsOf].filter(
-      (friend) => friend.confirmed === true || friend.user_uuid === uuid,
-    );
   }
 
   async create(dto: InputUserDto) {
@@ -183,28 +158,6 @@ export class UsersService {
         },
       },
     });
-  }
-
-  async addFriend(uuid: string, user_uuid: string) {
-    const currentUser = await this.prisma.user.findFirst({
-      where: { uuid },
-    });
-
-    if (currentUser.uuid === user_uuid)
-      throw new BadRequestException(
-        "You can't add yourself in list of friends",
-      );
-
-    await this.prisma.friend.create({ data: { userOf_uuid: uuid, user_uuid } });
-    return 'The user was added to your list of friends';
-  }
-
-  async confirmFriend(id: number) {
-    await this.prisma.friend.update({
-      where: { id },
-      data: { confirmed: true },
-    });
-    return 'The friend was confirmed';
   }
 
   async delete(uuid: string, sid: string) {

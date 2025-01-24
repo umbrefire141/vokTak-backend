@@ -48,6 +48,12 @@ export const userSelectedData: Prisma.UserSelect<DefaultArgs> = {
       },
     },
   },
+  friends: {
+    include: {
+      user: true,
+      userOf: true,
+    },
+  },
   created_at: true,
   password: false,
   photos: true,

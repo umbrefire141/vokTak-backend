@@ -16,7 +16,7 @@ async function bootstrap() {
   app.use(compression());
 
   app.enableCors({
-    origin: [config.get('SITE_URL')],
+    origin: true,
     credentials: true,
   });
 

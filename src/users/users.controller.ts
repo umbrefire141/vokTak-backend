@@ -37,7 +37,7 @@ import {
   UpdateUserDto,
 } from './dto/input-user.dto';
 import { UserInfoDto } from './dto/user-info.dto';
-import { FriendDto, UserDto } from './dto/user.dto';
+import { UserDto } from './dto/user.dto';
 import { userSchemaApi } from './user.schema';
 import { UsersService } from './users.service';
 
@@ -82,23 +82,6 @@ export class UsersController {
     const user = await this.usersService.getUser(uuid);
     this.cacheService.set(`user/${user.uuid}`, user);
     return plainToInstance(UserDto, user);
-  }
-
-  @ApiOkResponse({
-    description: 'Friend of list was gotten',
-    schema: {
-      example: userSchemaApi,
-    },
-  })
-  @ApiNotFoundResponse({ description: "User wasn't found" })
-  @HttpCode(200)
-  @UseGuards(AuthGuard)
-  @UseInterceptors(InjectUserInterceptor)
-  @Get('/get-friends')
-  async getFriendsList(@CurrentUser('uuid') uuid: string) {
-    const friends = await this.usersService.getListFriends(uuid);
-
-    return plainToInstance(FriendDto, friends);
   }
 
   // Put methods
@@ -234,59 +217,6 @@ export class UsersController {
     this.cacheService.del(`user/${uuid}`);
 
     return plainToInstance(UserDto, user);
-  }
-
-  @ApiOkResponse({
-    description: 'Confirm',
-    schema: {
-      example: userSchemaApi,
-    },
-  })
-  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        user_uuid: {
-          type: 'string',
-          example: 'any user_uuid',
-        },
-      },
-    },
-  })
-  @UseGuards(AuthGuard)
-  @UseInterceptors(InjectUserInterceptor)
-  @Patch('confirm-friend/:id')
-  async confirmFriend(@Param('id') id: number) {
-    return this.usersService.confirmFriend(id);
-  }
-
-  @ApiOkResponse({
-    description: 'Friend was added',
-    schema: {
-      example: userSchemaApi,
-    },
-  })
-  @ApiUnauthorizedResponse({ description: "User isn't authorized" })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        user_uuid: {
-          type: 'string',
-          example: 'any user_uuid',
-        },
-      },
-    },
-  })
-  @UseGuards(AuthGuard)
-  @UseInterceptors(InjectUserInterceptor)
-  @Patch('add-friend')
-  async addFriend(
-    @CurrentUser('uuid') uuid: string,
-    @Body() { user_uuid }: { user_uuid: string },
-  ) {
-    return this.usersService.addFriend(uuid, user_uuid);
   }
 
   // Delete methods

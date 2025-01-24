@@ -15,6 +15,7 @@ import { PostsModule } from './posts/posts.module';
 import { RolesModule } from './roles/roles.module';
 import { UsersModule } from './users/users.module';
 import { VideosModule } from './videos/videos.module';
+import { FriendsModule } from './friends/friends.module';
 
 @Module({
   imports: [
@@ -33,8 +34,11 @@ import { VideosModule } from './videos/videos.module';
       isGlobal: true,
       useFactory: async (config: ConfigService) => ({
         store: (await redisStore({
-          url: config.get('REDIS_URL'),
           ttl: config.get('CACHE_TTL'),
+          socket: {
+            host: config.get('REDIS_HOST'),
+            port: +config.get('REDIS_PORT'),
+          },
         })) as unknown as CacheStore,
       }),
       inject: [ConfigService],
@@ -48,6 +52,7 @@ import { VideosModule } from './videos/videos.module';
     VideosModule,
     ChatModule,
     NotificationsModule,
+    FriendsModule,
   ],
   controllers: [],
   providers: [],
