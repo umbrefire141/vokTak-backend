@@ -20,8 +20,9 @@ export class PhotosService {
   }
 
   async addPhoto(dto: InputPhotoDto, user_uuid: string) {
+    const path = dto.image.replace(/\\/g, '/');
     const addedPhoto = await this.prisma.photo.create({
-      data: { ...dto, user_uuid },
+      data: { ...dto, image: path, user_uuid },
     });
 
     return addedPhoto;

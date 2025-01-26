@@ -83,10 +83,9 @@ export class PhotosController {
   ) {
     const addedPhoto = await this.photosService.addPhoto(
       {
-        name: dto.name,
-        alt: dto.alt,
+        name: img.filename,
         image: img.path,
-        hidden: dto.hidden,
+        hidden: false,
       },
       uuid,
     );

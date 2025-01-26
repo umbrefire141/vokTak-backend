@@ -34,8 +34,13 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findFirstOrThrow({
         where: { uuid },
+
         select: {
           ...userSelectedData,
+          photos: {
+            skip: 4,
+            take: 4,
+          },
           friends: {
             include: {
               user: { include: { avatar: true } },
