@@ -15,6 +15,9 @@ export const userSelectedData: Prisma.UserSelect<DefaultArgs> = {
   language: true,
   user_info: true,
   posts: {
+    orderBy: {
+      created_at: 'desc',
+    },
     include: {
       comments: {
         include: {

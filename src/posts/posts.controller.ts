@@ -76,7 +76,6 @@ export class PostsController {
   @Get(':uuid')
   async getOne(@Param('uuid') uuid: string) {
     const post = await this.postsService.getOne(uuid);
-
     this.cacheService.set(`post/${uuid}`, post);
 
     return plainToInstance(PostDto, post);
