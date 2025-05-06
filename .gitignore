@@ -2,7 +2,9 @@
 /dist
 /node_modules
 /uploads
-
+/supertak_backend
+/redis
+/pgdata
 # Logs
 logs
 *.log

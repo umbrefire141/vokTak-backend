@@ -1,0 +1,55 @@
+version: '3.5'
+
+services:  
+  app:
+    container_name: supertak_backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./supertak_backend:/main
+      - supertak_backend_node-modules:/main/node_modules
+    env_file:
+      - .env
+
+  db:
+    container_name: pg_db
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=db_supertak
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    depends_on:
+      - db
+    ports:
+      - '5050:80'
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=root@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=root
+    restart: unless-stopped
+
+  redis:
+    image: redis
+    restart: always
+    container_name: redis
+    volumes:
+      - ./redis:/var/lib/redis/data
+    ports:
+      - '6379:6379'
+
+volumes:
+  pgdata:
+  supertak_backend_node-modules:
