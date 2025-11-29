@@ -38,7 +38,7 @@ export class UsersService {
         select: {
           ...userSelectedData,
           photos: {
-            skip: 4,
+            skip: 1,
             take: 4,
           },
           friends: {

@@ -35,7 +35,8 @@ import { VideosModule } from './videos/videos.module';
       useFactory: async (config: ConfigService) => ({
         store: (await redisStore({
           ttl: config.get('CACHE_TTL'),
-          url: config.get('REDIS_URL'),
+          // Later back in normal state
+          // url: config.get('REDIS_URL'),
         })) as unknown as CacheStore,
       }),
       inject: [ConfigService],

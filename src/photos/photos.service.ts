@@ -7,8 +7,12 @@ import { InputPhotoDto } from './dto/input-photo.dto';
 export class PhotosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getPhotos() {
-    return await this.prisma.photo.findMany();
+  async getPhotos(uuid: string) {
+    return await this.prisma.photo.findMany({
+      where: {
+        user_uuid: uuid,
+      },
+    });
   }
 
   async getPhoto(id: number) {

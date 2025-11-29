@@ -40,10 +40,11 @@ export class PhotosController {
   })
   @ApiUnauthorizedResponse({ description: "User isn't authorized" })
   @UseGuards(AuthGuard)
+  @UseInterceptors(InjectUserInterceptor)
   @HttpCode(200)
   @Get()
-  async getPhotos() {
-    const photos = await this.photosService.getPhotos();
+  async getPhotos(@CurrentUser('uuid') uuid: string) {
+    const photos = await this.photosService.getPhotos(uuid);
 
     return plainToInstance(PhotoDto, photos);
   }
